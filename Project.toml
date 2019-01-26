@@ -1,0 +1,18 @@
+name = "JuMPLPUtils"
+uuid = "4ff0e2e2-215e-11e9-0e6a-755cc9338571"
+authors = ["Edvin Åblad <edvin@ablad.nu>"]
+version = "0.1.0"
+
+[deps]
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+MathProgBase = "fdba3010-5040-5b88-9595-932c9decdf73"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[extras]
+Clp = "e2554f3b-3117-50c0-817c-e040a3ddf72d"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+
+[targets]
+test = ["Test", "Clp","Random"]
