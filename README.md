@@ -1,5 +1,5 @@
 # JuMPLPUtils
-Some minor functions to study the sensitivity of an LP solution, e.g., optimallity range for rhs and cost perturbations.
+Some minor functions to study the sensitivity of an LP solution, e.g., optimality range for rhs and cost perturbations.
 
 !Only intended for learning purposes, performance has not been optimized by any means!
 
