@@ -70,7 +70,9 @@ function getoptranges(model::Model)
   rhs_int = zeros(A.m,2)
   rhs_int[:,1] .= -Inf
   rhs_int[:,2] .= Inf
-  for i = 1:A.m
+  rhs_int[row_basis .== :Basic, 1] = row_val - row_ub
+  rhs_int[row_basis .== :Basic, 2] = row_val - row_lb
+  for i = (1:A.m)[row_basis .!= :Basic]
     ei = zeros(A.m)
     ei[i] = 1.0
     db = B\ei

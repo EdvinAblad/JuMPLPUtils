@@ -53,12 +53,12 @@ for i in I
     db = .8*max(b_int[i,1],-1.0)
     JuMP.setRHS(constraint[i], b[i] + db)
     solve(m)
-    # @test sum(getvalue(x).innerArray[N]) <= 1e-10
+    @test sum(getvalue(x).innerArray[N]) <= 1e-10
     @test abs(z_val - getvalue(z) + db*pi[i]) <= 1e-10
     db= .8*min(b_int[i,2], 1.0)
     JuMP.setRHS(constraint[i], b[i] + db)
     solve(m)
-    # @test sum(getvalue(x).innerArray[N]) <= 1e-10
+    @test sum(getvalue(x).innerArray[N]) <= 1e-10
     @test abs(z_val - getvalue(z) + db*pi[i]) <= 1e-10
     JuMP.setRHS(constraint[i], b[i])
 end
@@ -88,13 +88,13 @@ c_int, b_int = getoptranges(m)
 z_val = getvalue(z)
 pi = getdual(constraint)
 for j in J
-    dc = .8*max(c_int[j,1],-1.0)
+    dc = .99*max(c_int[j,1],-1.0)
     c[j] += dc
     @objective(m, Max, sum(c[j]*x[j] for j in J))
     solve(m)
     @test sum(abs(x_val[j] - getvalue(x)[j]) for j in J) <= 1e-10
     c[j] -= dc
-    dc = .8*min(c_int[j,2],1.0)
+    dc = .99*min(c_int[j,2],1.0)
     c[j] += dc
     @objective(m, Max, sum(c[j]*x[j] for j in J))
     solve(m)
@@ -104,15 +104,15 @@ end
 @objective(m, Max, sum(c[j]*x[j] for j in J))
 
 for i in I
-    db = .8*max(b_int[i,1],-1.0)
+    db = .99*max(b_int[i,1],-1.0)
     JuMP.setRHS(constraint[i], b[i] + db)
     solve(m)
-    # @test sum(getvalue(x).innerArray[N]) <= 1e-10
+    @test sum(getvalue(x).innerArray[N]) <= 1e-10
     @test abs(z_val - getvalue(z) + db*pi[i]) <= 1e-10
-    db= .8*min(b_int[i,2], 1.0)
+    db= .99*min(b_int[i,2], 1.0)
     JuMP.setRHS(constraint[i], b[i] + db)
     solve(m)
-    # @test sum(getvalue(x).innerArray[N]) <= 1e-10
+    @test sum(getvalue(x).innerArray[N]) <= 1e-10
     @test abs(z_val - getvalue(z) + db*pi[i]) <= 1e-10
     JuMP.setRHS(constraint[i], b[i])
 end
