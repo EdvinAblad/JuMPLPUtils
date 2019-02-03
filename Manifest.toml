@@ -21,6 +21,12 @@ git-tree-sha1 = "f60954495a7afcee4136f78d1d60350abd37a409"
 uuid = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
 version = "0.4.1"
 
+[[Combinatorics]]
+deps = ["LinearAlgebra", "Polynomials", "Test"]
+git-tree-sha1 = "50b3ae4d643dc27eaff69fb6be06ee094d5500c9"
+uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+version = "0.7.0"
+
 [[CommonSubexpressions]]
 deps = ["Test"]
 git-tree-sha1 = "efdaf19ab11c7889334ca247ff4c9f7c322817b0"
@@ -29,9 +35,9 @@ version = "0.2.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "ec61a16eed883ad0cfa002d7489b3ce6d039bb9a"
+git-tree-sha1 = "49269e311ffe11ac5b334681d212329002a9832a"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "1.4.0"
+version = "1.5.1"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections", "Random", "Serialization", "Test"]
@@ -55,9 +61,9 @@ version = "0.0.3"
 
 [[DiffRules]]
 deps = ["Random", "Test"]
-git-tree-sha1 = "c49ec69428ffea0c1d1bbdc63d1a70f5df5860ad"
+git-tree-sha1 = "09d69da75967ec48a8b1ad0897ec9144ee052bf9"
 uuid = "b552c78f-8df3-52c6-915a-8e097449b14b"
-version = "0.0.7"
+version = "0.0.8"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -74,10 +80,12 @@ deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[JuMP]]
-deps = ["Calculus", "Compat", "ForwardDiff", "Libdl", "MathProgBase", "Pkg", "ReverseDiffSparse", "Serialization"]
-git-tree-sha1 = "3bd8e52f7aeb2736a8e1b0d8ae8d01c2c85fea24"
+deps = ["Calculus", "DataStructures", "ForwardDiff", "LinearAlgebra", "MathOptInterface", "NaNMath", "Random", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "db897ea06270247f45992c4e543a7d8a4948f5f9"
+repo-rev = "master"
+repo-url = "https://github.com/JuliaOpt/JuMP.jl"
 uuid = "4076af6c-e467-56ae-b986-b466b2749572"
-version = "0.18.5"
+version = "0.18.5+"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -96,11 +104,11 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
-[[MathProgBase]]
-deps = ["Compat"]
-git-tree-sha1 = "3bf2e534e635df810e5f4b4f1a8b6de9004a0d53"
-uuid = "fdba3010-5040-5b88-9595-932c9decdf73"
-version = "0.7.7"
+[[MathOptInterface]]
+deps = ["Compat", "Unicode"]
+git-tree-sha1 = "6f3df4b5346485b299ae5d2b313ecb428bb46bb9"
+uuid = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
+version = "0.8.1"
 
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
@@ -121,6 +129,12 @@ version = "1.0.2"
 deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
+[[Polynomials]]
+deps = ["LinearAlgebra", "SparseArrays", "Test"]
+git-tree-sha1 = "62142bd65d3f8aeb2226ec64dd8493349147df94"
+uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
+version = "0.5.2"
+
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
@@ -132,12 +146,6 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 [[Random]]
 deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-
-[[ReverseDiffSparse]]
-deps = ["Calculus", "Compat", "DataStructures", "ForwardDiff", "MathProgBase", "NaNMath"]
-git-tree-sha1 = "706bae484c5a6ddf1c2fd888061751210d490c70"
-uuid = "89212889-6d3f-5f97-b412-7825138f6c9c"
-version = "0.8.5"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
