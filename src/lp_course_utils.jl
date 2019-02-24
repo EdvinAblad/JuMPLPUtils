@@ -163,10 +163,86 @@ function get_std_dual(model::Model)::Array{Float64,1}
   lq_constr = all_constraints(model, AffExpr, MOI.LessThan{Float64})
   gr_constr = all_constraints(model, AffExpr, MOI.GreaterThan{Float64})
   int_constr = all_constraints(model, AffExpr, MOI.Interval{Float64})
-
-
   return ((objective_sense(model) == MOI.MAX_SENSE) ? -1.0 : 1.0 ) .* dual.([eq_constr;lq_constr;gr_constr;int_constr])
 end
+"""
+Get basic variables
+"""
+function get_col_basis(model::Model, vars::Vector{VariableRef})::Vector{Int64}
+  eq_constr = all_constraints(model, AffExpr, MOI.EqualTo{Float64})
+  lq_constr = all_constraints(model, AffExpr, MOI.LessThan{Float64})
+  gr_constr = all_constraints(model, AffExpr, MOI.GreaterThan{Float64})
+  int_constr = all_constraints(model, AffExpr, MOI.Interval{Float64})
+  col_basis = Array{Int64,1}()
+  try
+    for (j, var) in pairs(vars)
+      if MOI.get(backend(model), MOI.VariableBasisStatus(), var.index) == MOI.BASIC
+        push!(col_basis, j)
+      end
+    end
+    off = length(vars) + length(eq_constr)
+    for (j, con) in pairs(lq_constr)
+      if MOI.get(backend(model), MOI.ConstraintBasisStatus(), con.index) == MOI.BASIC
+        push!(col_basis, j + off)
+      end
+    end
+    off += length(lq_constr)
+    for (j, con) in pairs(gr_constr)
+      if MOI.get(backend(model), MOI.ConstraintBasisStatus(), con.index) == MOI.BASIC
+        push!(col_basis, j + off)
+      end
+    end
+    off += length(gr_constr)
+    for (j, con) in pairs(int_constr)
+      if MOI.get(backend(model), MOI.ConstraintBasisStatus(), con.index) == MOI.BASIC
+        push!(col_basis, j + off)
+      end
+    end
+  catch
+    @warn("VariableBasisStatus not supported by solver, using brute force method")
+    A, b, c, slack_upper = get_std_matrix(model)
+    n_vars = length(vars)
+    n_slack = length(slack_upper)
+    n = n_slack + n_vars
+    m = length(b)
+    #Identify the basic and non-basic variables
+    x_val = value.(vars)
+    s_val = A[:,(n_vars+1):n]*(b - A[:,1:n_vars]*x_val)
+    x_lb =  get_var_lb.(vars)
+    x_ub =  get_var_ub.(vars)
+    bound_dist = min.(x_val - x_lb, x_ub - x_val)
+    slack_dist = min.(s_val, slack_upper- s_val)
+    x_basis = (1:n_vars)[bound_dist .> 1e-6]
+    col_basis = [x_basis; (n_vars+1:n)[slack_dist .> 1e-6]]
+    if length(col_basis) < m
+      y = get_std_dual(model)
+      c_red = c - A'*y
+      B = A[:,col_basis]
+      basis_cand = (1:n)[abs.(c_red) .< 1e-6]
+      new_basis_cand = setdiff(basis_cand, col_basis)
+      if length(col_basis) + length(new_basis_cand) < m
+        @warn "Degenerate primal solution, sensitiviy might be too restrictive, try perturbing rhs to get a non-degenerate solution"
+        return col_basis
+      end
+      m_missing = m - length(col_basis)
+      miss_range = (m - m_missing + 1):m
+      alt_new_basis = collect(Combinatorics.combinations(new_basis_cand, m_missing))
+      append!(col_basis, alt_new_basis[1])
+      B = A[:, col_basis]
+      max_det = abs(det(B_cand))
+      for i in 2:min(length(alt_new_basis), 100)
+          B[:,miss_range] = A[:,alt_new_basis[i]]
+          cur_det = abs(det(B_cand))
+          if cur_det > max_det
+            max_det = cur_det
+            col_basis[miss_range] = alt_new_basis[i]
+          end
+      end
+    end
+  end
+  return col_basis
+end
+
 """
   Computes the perturbation range for costs and rhs, in which the current basis remains optimal.
 """
@@ -181,17 +257,13 @@ function get_opt_ranges(model::Model)
   #Identify the basic and non-basic variables
   x_val = value.(vars)
   s_val = A[:,(n_vars+1):n]*(b - A[:,1:n_vars]*x_val)
-  col_basis = Array{Int64,1}()
+  col_basis = get_col_basis(model, vars)
   x_lb =  get_var_lb.(vars)
   x_ub =  get_var_ub.(vars)
   bound_dist = min.(x_val - x_lb, x_ub - x_val)
-  slack_dist = min.(s_val, slack_upper- s_val)
   x_basis = (1:n_vars)[bound_dist .> 1e-6]
-  col_basis = [x_basis; (n_vars+1:n)[slack_dist .> 1e-6]]
   x_at_lower = (1:n_vars)[x_val - x_lb .<= 1e-6]
   x_at_upper = (1:n_vars)[x_ub - x_val .<= 1e-6]
-  col_at_lower = [x_at_lower; (n_vars+1:n)[s_val .<= 1e-6]]
-  col_at_upper = [x_at_upper; (n_vars+1:n)[slack_upper - s_val .<= 1e-6]]
 
   y = get_std_dual(model)
   c_red = c - A'*y
@@ -207,31 +279,7 @@ function get_opt_ranges(model::Model)
     cost_int[:,1], cost_int[:,2] = cost_int[:,2], cost_int[:,1]
     cost_int[isinf.(cost_int)] *= -1.0;
   end
-
   B = A[:,col_basis]
-  if length(col_basis) < m
-    basis_cand = (1:n)[abs.(c_red) .< 1e-6]
-    new_basis_cand = setdiff(basis_cand, col_basis)
-    if length(col_basis) + length(new_basis_cand) < m
-      @warn "Degenerate primal solution, sensitiviy might be too restrictive, try perturbing rhs to get a non-degenerate solution"
-      return cost_int, zeros(m, 2)
-    end
-    m_missing = m - length(col_basis)
-    miss_range = (m - m_missing + 1):m
-    alt_new_basis = collect(Combinatorics.combinations(new_basis_cand, m_missing))
-    append!(col_basis, alt_new_basis[1])
-    B = A[:, col_basis]
-    max_det = abs(det(B_cand))
-    for i in 2:min(length(alt_new_basis), 100)
-        B[:,miss_range] = A[:,alt_new_basis[i]]
-        cur_det = abs(det(B_cand))
-        if cur_det > max_det
-          max_det = cur_det
-          col_basis[miss_range] = alt_new_basis[i]
-        end
-    end
-    B[:,miss_range] = A[:, col_basis[miss_range]]
-  end
 
   N = A[:,setdiff(1:n,col_basis)]
   # intervals for basic cost costcoefficient
